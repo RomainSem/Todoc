@@ -60,13 +60,13 @@ public class ProjectDaoTest {
         // BEFORE : Adding a new user
 
 
-        this.database.ProjectDao().createProject(PROJECT_DEMO);
+        this.database.projectDao().createProject(PROJECT_DEMO);
 
 
         // TEST
 
 
-        Project project = LiveDataTestUtil.getValue(this.database.ProjectDao().getProject(PROJECT_ID));
+        Project project = this.database.projectDao().getProject(PROJECT_ID);
 
 
         assertTrue(project.getName().equals(PROJECT_DEMO.getName()) && project.getId() == PROJECT_ID);

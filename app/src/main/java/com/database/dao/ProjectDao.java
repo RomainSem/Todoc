@@ -8,6 +8,9 @@ import androidx.room.Query;
 
 import com.model.Project;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Dao
 public interface ProjectDao {
 
@@ -17,8 +20,9 @@ public interface ProjectDao {
     void createProject(Project project);
 
 
+    @Query("SELECT * FROM project")
+    List<Project> getAllProjects();
 
-
-    @Query("SELECT * FROM Project WHERE id = :projectId")
-    LiveData<Project> getProject(long projectId);
+    @Query("SELECT * FROM Project WHERE project_id = :projectId")
+    Project getProject(long projectId);
 }

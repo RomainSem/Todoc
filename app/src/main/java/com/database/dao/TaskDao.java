@@ -15,11 +15,14 @@ import java.util.List;
 @Dao
 public interface TaskDao {
 
-    @Query("SELECT * FROM Task WHERE projectId = :projectId")
-    LiveData<List<Task>> getTasks(long projectId);
+    @Query("SELECT * FROM Task WHERE project_id = :projectId")
+    List<Task> getTasks(long projectId);
+
+    @Query("SELECT * FROM Task")
+    List<Task> getAllTasks();
 
 
-    @Query("SELECT * FROM Task WHERE projectId = :projectId")
+    @Query("SELECT * FROM Task WHERE project_id = :projectId")
     Cursor getTasksWithCursor(long projectId);
 
 
@@ -33,7 +36,7 @@ public interface TaskDao {
     int updateTask(Task task);
 
 
-    @Query("DELETE FROM Task WHERE id = :taskId")
+    @Query("DELETE FROM Task WHERE task_id = :taskId")
 
     int deleteTask(long taskId);
 }

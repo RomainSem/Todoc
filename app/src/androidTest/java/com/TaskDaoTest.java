@@ -1,5 +1,6 @@
 package com;
 
+import static android.media.CamcorderProfile.get;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -48,17 +49,17 @@ public class TaskDaoTest {
     }
 
 
-    private static Task NEW_TASK_PLACE_TO_VISIT = new Task(0, 0, "Visite cet endroit de rêve !", 1230
+    private static Task NEW_TASK_PLACE_TO_VISIT = new Task(0, "Visite cet endroit de rêve !", 1230
 
     );
 
 
-    private static Task NEW_TASK_IDEA = new Task(1, 0, "On pourrait faire du chien de traîneau ?", 1250
+    private static Task NEW_TASK_IDEA = new Task(1, "On pourrait faire du chien de traîneau ?", 1250
 
     );
 
 
-    private static Task NEW_TASK_RESTAURANTS = new Task(2, 1, "Ce restaurant à l'air sympa", 2030
+    private static Task NEW_TASK_RESTAURANTS = new Task(2, "Ce restaurant à l'air sympa", 2030
 
     );
 
@@ -72,8 +73,7 @@ public class TaskDaoTest {
         // TEST
 
 
-        List<Task> items = LiveDataTestUtil.getValue(this.database.taskDao().getTasks(PROJECT_ID));
-
+        List<Task> items = this.database.taskDao().getTasks(PROJECT_ID);
 
         assertTrue(items.isEmpty());
 
@@ -89,7 +89,7 @@ public class TaskDaoTest {
 
 
 
-        this.database.ProjectDao().createProject(PROJECT_DEMO);
+        this.database.projectDao().createProject(PROJECT_DEMO);
 
 
         this.database.taskDao().insertTask(NEW_TASK_PLACE_TO_VISIT);
@@ -104,7 +104,7 @@ public class TaskDaoTest {
         // TEST
 
 
-        List<Task> items = LiveDataTestUtil.getValue(this.database.taskDao().getTasks(PROJECT_ID));
+        List<Task> items = this.database.taskDao().getTasks(PROJECT_ID);
 
 
         assertEquals(3, items.size());
@@ -122,13 +122,13 @@ public class TaskDaoTest {
         // BEFORE : Adding demo project & demo task. Next, update task added & re-save it
 
 
-        this.database.ProjectDao().createProject(PROJECT_DEMO);
+        this.database.projectDao().createProject(PROJECT_DEMO);
 
 
         this.database.taskDao().insertTask(NEW_TASK_PLACE_TO_VISIT);
 
 
-        Task taskAdded = LiveDataTestUtil.getValue(this.database.taskDao().getTasks(PROJECT_ID)).get(0);
+        Task taskAdded = this.database.taskDao().getTasks(PROJECT_ID).get(0);
 
 
         taskAdded.setSelected(true);
@@ -141,7 +141,7 @@ public class TaskDaoTest {
         //TEST
 
 
-        List<Task> items = LiveDataTestUtil.getValue(this.database.taskDao().getTasks(PROJECT_ID));
+        List<Task> items = this.database.taskDao().getTasks(PROJECT_ID);
 
 
         assertTrue(items.size() == 1 && items.get(0).getSelected());
@@ -156,13 +156,13 @@ public class TaskDaoTest {
         // BEFORE : Adding demo project & demo task. Next, get the task added & delete it.
 
 
-        this.database.ProjectDao().createProject(PROJECT_DEMO);
+        this.database.projectDao().createProject(PROJECT_DEMO);
 
 
         this.database.taskDao().insertTask(NEW_TASK_PLACE_TO_VISIT);
 
 
-        Task taskAdded = LiveDataTestUtil.getValue(this.database.taskDao().getTasks(PROJECT_ID)).get(0);
+        Task taskAdded = this.database.taskDao().getTasks(PROJECT_ID).get(0);
 
 
         this.database.taskDao().deleteTask(taskAdded.getId());
@@ -171,7 +171,7 @@ public class TaskDaoTest {
         //TEST
 
 
-        List<Task> items = LiveDataTestUtil.getValue(this.database.taskDao().getTasks(PROJECT_ID));
+        List<Task> items = this.database.taskDao().getTasks(PROJECT_ID);
 
 
         assertTrue(items.isEmpty());

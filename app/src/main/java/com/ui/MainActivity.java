@@ -18,6 +18,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.database.TodocDatabase;
+import com.database.dao.ProjectDao;
+import com.database.dao.TaskDao;
 import com.example.todoc.R;
 import com.model.Project;
 import com.model.Task;
@@ -25,6 +28,9 @@ import com.model.Task;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 /**
  * <p>Home activity of the application which is displayed when the user opens the app.</p>
@@ -33,16 +39,23 @@ import java.util.Date;
  * @author Gaëtan HERFRAY
  */
 public class MainActivity extends AppCompatActivity implements TaskAdapter.DeleteTaskListener {
+
     /**
      * List of all projects available in the application
      */
     private final Project[] allProjects = Project.getAllProjects();
 
+    private TaskDao taskDao;
+    private ProjectDao projectDao;
+    private Executor executor;
+
     /**
      * List of all current tasks of the application
      */
     @NonNull
-    private final ArrayList<Task> tasks = new ArrayList<>();
+    private final List<Task> tasks = new ArrayList<>();
+
+    private final List<Project> projects = new ArrayList<>();
 
     /**
      * The adapter which handles the list of tasks
@@ -94,6 +107,11 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+        taskDao = TodocDatabase.getInstance(this).taskDao();
+        projectDao = TodocDatabase.getInstance(this).projectDao();
+        executor = Executors.newSingleThreadExecutor();
+        loadAllTasks();
+
 
         listTasks = findViewById(R.id.list_tasks);
         lblNoTasks = findViewById(R.id.lbl_no_task);
@@ -137,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
     @Override
     public void onDeleteTask(Task task) {
         tasks.remove(task);
+        executor.execute(() -> taskDao.deleteTask(task.getId()));
         updateTasks();
     }
 
@@ -164,11 +183,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
             // If both project and name of the task have been set
             else if (taskProject != null) {
                 // TODO: Replace this by id of persisted task
-                long id = (long) (Math.random() * 50000);
-
-
                 Task task = new Task(
-                        id,
                         taskProject.getId(),
                         taskName,
                         new Date().getTime()
@@ -210,6 +225,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
      */
     private void addTask(@NonNull Task task) {
         tasks.add(task);
+        executor.execute(() -> taskDao.insertTask(task));
         updateTasks();
     }
 
@@ -320,5 +336,18 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
          * No sort
          */
         NONE
+    }
+
+    public void loadAllProjects() {
+        projects.clear();
+        executor.execute(() -> projects.addAll(projectDao.getAllProjects()));
+    }
+
+    public void loadAllTasks() {
+        tasks.clear();
+        executor.execute(() -> {
+            tasks.addAll(taskDao.getAllTasks());
+            updateTasks();
+        });
     }
 }
