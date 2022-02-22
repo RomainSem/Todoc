@@ -1,5 +1,6 @@
 package com.ui;
 
+import android.annotation.SuppressLint;
 import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,14 +36,18 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     @NonNull
     private final DeleteTaskListener deleteTaskListener;
 
+    @NonNull
+    private final TaskGetProjectCommand taskGetProjectCommand;
+
     /**
      * Instantiates a new TasksAdapter.
      *
      * @param tasks the list of tasks the adapter deals with to set
      */
-    TaskAdapter(@NonNull final List<Task> tasks, @NonNull final DeleteTaskListener deleteTaskListener) {
+    TaskAdapter(@NonNull final List<Task> tasks, @NonNull final DeleteTaskListener deleteTaskListener, @NonNull TaskGetProjectCommand taskGetProjectCommand) {
         this.tasks = tasks;
         this.deleteTaskListener = deleteTaskListener;
+        this.taskGetProjectCommand = taskGetProjectCommand;
     }
 
     /**
@@ -147,11 +152,12 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
          *
          * @param task the task to bind in the item view
          */
+        @SuppressLint("RestrictedApi")
         void bind(Task task) {
             lblTaskName.setText(task.getName());
             imgDelete.setTag(task);
 
-            final Project taskProject = task.getProject();
+            final Project taskProject = taskGetProjectCommand.getProjectById(task.getProjectId());
             if (taskProject != null) {
                 imgProject.setSupportImageTintList(ColorStateList.valueOf(taskProject.getColor()));
                 lblProjectName.setText(taskProject.getName());

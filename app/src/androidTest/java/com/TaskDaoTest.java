@@ -21,7 +21,7 @@ import java.util.List;
 public class TaskDaoTest {
     private TodocDatabase database;
     private static long PROJECT_ID = 1;
-    private static Project PROJECT_DEMO = new Project(PROJECT_ID, "Random name", 123456);
+    private static Project PROJECT_DEMO = new Project("Random name", 123456);
 
     @Rule
 

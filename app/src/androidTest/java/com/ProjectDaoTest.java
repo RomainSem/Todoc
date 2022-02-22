@@ -21,65 +21,37 @@ import org.junit.runner.RunWith;
 public class ProjectDaoTest {
 
 
-
     // FOR DATA
 
     private static long PROJECT_ID = 1;
-    private static Project PROJECT_DEMO = new Project(PROJECT_ID, "Random name", 123456);
+    private static Project PROJECT_DEMO = new Project("Random name", 123456);
 
     private TodocDatabase database;
 
 
     @Rule
-
-
     public InstantTaskExecutorRule instantTaskExecutorRule = new InstantTaskExecutorRule();
 
 
     @Before
-
-
     public void initDb() throws Exception {
-
-
         this.database = Room.inMemoryDatabaseBuilder(InstrumentationRegistry.getContext(),
-
-
                 TodocDatabase.class)
-
-
                 .allowMainThreadQueries()
-
-
                 .build();
-
     }
 
     @Test
     public void insertAndGetProject() throws InterruptedException {
         // BEFORE : Adding a new user
-
-
         this.database.projectDao().createProject(PROJECT_DEMO);
-
-
         // TEST
-
-
         Project project = this.database.projectDao().getProject(PROJECT_ID);
-
-
         assertTrue(project.getName().equals(PROJECT_DEMO.getName()) && project.getId() == PROJECT_ID);
     }
 
-
     @After
-
     public void closeDb() throws Exception {
-
-
         database.close();
-
-
     }
 }

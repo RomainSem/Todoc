@@ -15,14 +15,14 @@ import java.util.List;
 public interface ProjectDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-
-
     void createProject(Project project);
-
 
     @Query("SELECT * FROM project")
     List<Project> getAllProjects();
 
     @Query("SELECT * FROM Project WHERE project_id = :projectId")
     Project getProject(long projectId);
+
+    @Query("DELETE FROM Project")
+    void deleteAll();
 }

@@ -28,8 +28,6 @@ public abstract class TodocDatabase extends RoomDatabase {
     // --- DAO ---
 
     public abstract TaskDao taskDao();
-
-
     public abstract ProjectDao projectDao();
 
 
@@ -72,7 +70,14 @@ public abstract class TodocDatabase extends RoomDatabase {
 
                 super.onCreate(db);
 
-                Executors.newSingleThreadExecutor().execute(() -> INSTANCE.projectDao().createProject(new Project(1, "New Project", 002331)));
+                Executors.newSingleThreadExecutor().execute(() -> {
+                    ProjectDao dao = INSTANCE.projectDao();
+                    dao.deleteAll();
+                    dao.createProject(new Project("Projet Tartampion", 0xFFEADAD1));
+                    dao.createProject(new Project("Projet Lucidia", 0xFFB4CDBA));
+                    dao.createProject(new Project("Projet Circus", 0xFFA3CED2));
+                } );
+
 
             }
 

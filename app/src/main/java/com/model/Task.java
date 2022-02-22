@@ -44,7 +44,7 @@ public class Task {
      */
     private long creationTimestamp;
 
-    private Boolean isSelected;
+     private Boolean isSelected;
 
     /**
      * Instantiates a new Task.
@@ -94,16 +94,7 @@ public class Task {
     private void setProjectId(long projectId) {
         this.projectId = projectId;
     }
-
-    /**
-     * Returns the project associated to the task.
-     *
-     * @return the project associated to the task
-     */
-    @Nullable
-    public Project getProject() {
-        return Project.getProjectById(projectId);
-    }
+    
 
     /**
      * Returns the name of the task.

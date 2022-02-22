@@ -38,12 +38,12 @@ import java.util.concurrent.Executors;
  *
  * @author Gaëtan HERFRAY
  */
-public class MainActivity extends AppCompatActivity implements TaskAdapter.DeleteTaskListener {
+public class MainActivity extends AppCompatActivity implements TaskAdapter.DeleteTaskListener, TaskGetProjectCommand {
 
     /**
      * List of all projects available in the application
      */
-    private final Project[] allProjects = Project.getAllProjects();
+    private List<Project> allProjects;
 
     private TaskDao taskDao;
     private ProjectDao projectDao;
@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
     /**
      * The adapter which handles the list of tasks
      */
-    private final TaskAdapter adapter = new TaskAdapter(tasks, this);
+    private final TaskAdapter adapter = new TaskAdapter(tasks, this, this);
 
     /**
      * The sort method to be used to display tasks
@@ -312,6 +312,14 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
         }
     }
 
+    @Override
+    public Project getProjectById(long projectId) {
+        for(Project p : allProjects) {
+            if(p.getId() == projectId) return p;
+        }
+        return null;
+    }
+
     /**
      * List of all possible sort methods for task
      */
@@ -346,6 +354,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
     public void loadAllTasks() {
         tasks.clear();
         executor.execute(() -> {
+            allProjects = projectDao.getAllProjects();
             tasks.addAll(taskDao.getAllTasks());
             updateTasks();
         });
