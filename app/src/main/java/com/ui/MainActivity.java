@@ -182,7 +182,6 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
             }
             // If both project and name of the task have been set
             else if (taskProject != null) {
-                // TODO: Replace this by id of persisted task
                 Task task = new Task(
                         taskProject.getId(),
                         taskName,
@@ -198,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
                 dialogInterface.dismiss();
             }
         }
-        // If dialog is aloready closed
+        // If dialog is already closed
         else {
             dialogInterface.dismiss();
         }
@@ -346,10 +345,10 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
         NONE
     }
 
-    public void loadAllProjects() {
+    /* public void loadAllProjects() {
         projects.clear();
         executor.execute(() -> projects.addAll(projectDao.getAllProjects()));
-    }
+    } */
 
     public void loadAllTasks() {
         tasks.clear();

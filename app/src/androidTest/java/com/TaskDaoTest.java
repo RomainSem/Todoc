@@ -1,6 +1,5 @@
 package com;
 
-import static android.media.CamcorderProfile.get;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -19,6 +18,7 @@ import org.junit.Test;
 import java.util.List;
 
 public class TaskDaoTest {
+
     private TodocDatabase database;
     private static long PROJECT_ID = 1;
     private static Project PROJECT_DEMO = new Project("Random name", 123456);

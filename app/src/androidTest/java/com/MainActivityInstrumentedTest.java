@@ -6,6 +6,7 @@ import android.widget.TextView;
 import com.example.todoc.R;
 import com.ui.MainActivity;
 
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,6 +23,7 @@ import static org.junit.Assert.assertThat;
 import static com.TestUtils.withRecyclerView;
 
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.test.InstrumentationRegistry;
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner;
 import androidx.test.rule.ActivityTestRule;
 import androidx.test.runner.AndroidJUnit4;
@@ -36,6 +38,11 @@ import androidx.test.runner.AndroidJUnit4;
 public class MainActivityInstrumentedTest {
     @Rule
     public ActivityTestRule<MainActivity> rule = new ActivityTestRule<>(MainActivity.class);
+
+    @BeforeClass
+    public static void beforeClass() {
+        androidx.test.core.app.ApplicationProvider.getApplicationContext().deleteDatabase("MyDatabase.db");
+    }
 
     @Test
     public void addAndRemoveTask() {
