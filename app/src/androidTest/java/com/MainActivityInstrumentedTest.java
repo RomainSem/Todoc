@@ -6,6 +6,7 @@ import android.widget.TextView;
 import com.example.todoc.R;
 import com.ui.MainActivity;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,8 +40,8 @@ public class MainActivityInstrumentedTest {
     @Rule
     public ActivityTestRule<MainActivity> rule = new ActivityTestRule<>(MainActivity.class);
 
-    @BeforeClass
-    public static void beforeClass() {
+    @Before
+    public void before() {
         androidx.test.core.app.ApplicationProvider.getApplicationContext().deleteDatabase("MyDatabase.db");
     }
 
@@ -72,6 +73,7 @@ public class MainActivityInstrumentedTest {
     @Test
     public void sortTasks() {
         MainActivity activity = rule.getActivity();
+        onView(withId(R.id.img_delete)).perform(click());
 
         onView(withId(R.id.fab_add_task)).perform(click());
         onView(withId(R.id.txt_task_name)).perform(replaceText("aaa Tâche example"));
