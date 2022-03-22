@@ -2,6 +2,7 @@ package com.ui;
 
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -110,8 +112,8 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
         taskDao = TodocDatabase.getInstance(this).taskDao();
         projectDao = TodocDatabase.getInstance(this).projectDao();
         executor = Executors.newSingleThreadExecutor();
-        loadAllTasks();
 
+        loadAllTasks();
 
         listTasks = findViewById(R.id.list_tasks);
         lblNoTasks = findViewById(R.id.lbl_no_task);
@@ -126,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
             }
         });
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -155,8 +158,16 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
     @Override
     public void onDeleteTask(Task task) {
         tasks.remove(task);
-        executor.execute(() -> taskDao.deleteTask(task.getId()));
-        updateTasks();
+        Toast.makeText(this, " " + task.getId(), Toast.LENGTH_SHORT).show();
+        Handler mainHandler = new Handler(this.getMainLooper());
+        executor.execute(() -> {
+            int numberOfRows = taskDao.deleteTask(task.getId());
+            refetchTasks();
+            mainHandler.post(() -> {
+                updateTasks();
+                Toast.makeText(this, "Tâche supprimée" + numberOfRows, Toast.LENGTH_LONG).show();
+            });
+        });
     }
 
     /**
@@ -167,6 +178,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
     private void onPositiveButtonClick(DialogInterface dialogInterface) {
         // If dialog is open
         if (dialogEditText != null && dialogSpinner != null) {
+            populateDialogSpinner();
             // Get the name of the task
             String taskName = dialogEditText.getText().toString();
 
@@ -193,7 +205,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
                 dialogInterface.dismiss();
             }
             // If name has been set, but project has not been set (this should never occur)
-            else{
+            else {
                 dialogInterface.dismiss();
             }
         }
@@ -224,8 +236,17 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
      */
     private void addTask(@NonNull Task task) {
         tasks.add(task);
-        executor.execute(() -> taskDao.insertTask(task));
-        updateTasks();
+        Toast.makeText(this, " " + task.getId(), Toast.LENGTH_LONG).show();
+        Handler mainHandler = new Handler(this.getMainLooper());
+        executor.execute(() -> {
+            taskDao.insertTask(task);
+            refetchTasks();
+            mainHandler.post(() -> {
+                updateTasks();
+                Toast.makeText(this, "Tâche créée", Toast.LENGTH_LONG).show();
+            });
+        });
+
     }
 
     /**
@@ -256,6 +277,12 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
             adapter.updateTasks(tasks);
         }
     }
+
+    private void refetchTasks() {
+        tasks.clear();
+        tasks.addAll(taskDao.getAllTasks());
+    }
+
 
     /**
      * Returns the dialog allowing the user to create a new task.
@@ -306,6 +333,8 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
     private void populateDialogSpinner() {
         final ArrayAdapter<Project> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, allProjects);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        //Toast.makeText(this, "Spinner " + (allProjects == null) + " " + allProjects.size(), Toast.LENGTH_SHORT).show();
+        // Toast.makeText(this, projectDao.getAllProjects().size(), Toast.LENGTH_LONG).show();
         if (dialogSpinner != null) {
             dialogSpinner.setAdapter(adapter);
         }
@@ -313,8 +342,9 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
 
     @Override
     public Project getProjectById(long projectId) {
-        for(Project p : allProjects) {
-            if(p.getId() == projectId) return p;
+        for (Project p : allProjects) {
+            if (p.getId() == projectId) return p;
+            Toast.makeText(this, allProjects.size(), Toast.LENGTH_SHORT).show();
         }
         return null;
     }
@@ -344,11 +374,6 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
          */
         NONE
     }
-
-    /* public void loadAllProjects() {
-        projects.clear();
-        executor.execute(() -> projects.addAll(projectDao.getAllProjects()));
-    } */
 
     public void loadAllTasks() {
         tasks.clear();

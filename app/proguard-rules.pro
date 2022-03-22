@@ -19,3 +19,9 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+#-keep public abstract class com.database.TodocDatabase
+#-keep public class com.database.dao.ProjectDao
+#-keep public class com.database.dao.TaskDao
+#-keep public class com.model.Project
+#-keep public class com.model.Task
