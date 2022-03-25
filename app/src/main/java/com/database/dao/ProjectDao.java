@@ -1,5 +1,6 @@
 package com.database.dao;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
@@ -12,14 +13,14 @@ import java.util.List;
 @Dao
 public interface ProjectDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    void createProject(Project project);
-
     @Query("SELECT * FROM Project")
-    List<Project> getAllProjects();
+    LiveData<List<Project>> getAllProjects();
 
-    @Query("SELECT * FROM Project WHERE project_id = :projectId")
-    Project getProject(long projectId);
+    @Insert
+    long createProject(Project project);
+
+    @Query("DELETE FROM Project WHERE project_id = :projectId")
+    int delete(long projectId);
 
     @Query("DELETE FROM Project")
     void deleteAll();

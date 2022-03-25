@@ -73,7 +73,6 @@ public class MainActivityInstrumentedTest {
     @Test
     public void sortTasks() {
         MainActivity activity = rule.getActivity();
-        onView(withId(R.id.img_delete)).perform(click());
 
         onView(withId(R.id.fab_add_task)).perform(click());
         onView(withId(R.id.txt_task_name)).perform(replaceText("aaa Tâche example"));

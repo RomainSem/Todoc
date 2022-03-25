@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,8 +25,11 @@ import com.database.TodocDatabase;
 import com.database.dao.ProjectDao;
 import com.database.dao.TaskDao;
 import com.example.todoc.R;
+import com.injection.Injection;
 import com.model.Project;
 import com.model.Task;
+import com.viewmodel.TaskViewModel;
+import com.viewmodel.ViewModelFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,32 +47,17 @@ import java.util.concurrent.Executors;
 public class MainActivity extends AppCompatActivity implements TaskAdapter.DeleteTaskListener, TaskGetProjectCommand {
 
     /**
-     * List of all projects available in the application
-     */
-    private List<Project> allProjects;
-
-    private TaskDao taskDao;
-    private ProjectDao projectDao;
-    private Executor executor;
-
-    /**
      * List of all current tasks of the application
      */
     @NonNull
-    private final List<Task> tasks = new ArrayList<>();
+    private List<Task> mTasks = new ArrayList<>();
 
-    private final List<Project> projects = new ArrayList<>();
+    private List<Project> allProjects = new ArrayList<>();
 
     /**
      * The adapter which handles the list of tasks
      */
-    private final TaskAdapter adapter = new TaskAdapter(tasks, this, this);
-
-    /**
-     * The sort method to be used to display tasks
-     */
-    @NonNull
-    private SortMethod sortMethod = SortMethod.NONE;
+    private final TaskAdapter adapter = new TaskAdapter(mTasks, this, this);
 
     /**
      * Dialog to create a new task
@@ -90,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
 
     /**
      * The RecyclerView which displays the list of tasks
+     * The RecyclerView which displays the list of tasks
      */
     // Suppress warning is safe because variable is initialized in onCreate
     @SuppressWarnings("NullableProblems")
@@ -104,16 +94,15 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
     @NonNull
     private TextView lblNoTasks;
 
+    private TaskViewModel mTaskViewModel;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_main);
-        taskDao = TodocDatabase.getInstance(this).taskDao();
-        projectDao = TodocDatabase.getInstance(this).projectDao();
-        executor = Executors.newSingleThreadExecutor();
+        initViewModel();
 
-        loadAllTasks();
+        setContentView(R.layout.activity_main);
 
         listTasks = findViewById(R.id.list_tasks);
         lblNoTasks = findViewById(R.id.lbl_no_task);
@@ -121,12 +110,7 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
         listTasks.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         listTasks.setAdapter(adapter);
 
-        findViewById(R.id.fab_add_task).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showAddTaskDialog();
-            }
-        });
+        findViewById(R.id.fab_add_task).setOnClickListener(view -> showAddTaskDialog());
     }
 
 
@@ -139,35 +123,14 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
-        if (id == R.id.filter_alphabetical) {
-            sortMethod = SortMethod.ALPHABETICAL;
-        } else if (id == R.id.filter_alphabetical_inverted) {
-            sortMethod = SortMethod.ALPHABETICAL_INVERTED;
-        } else if (id == R.id.filter_oldest_first) {
-            sortMethod = SortMethod.OLD_FIRST;
-        } else if (id == R.id.filter_recent_first) {
-            sortMethod = SortMethod.RECENT_FIRST;
-        }
-
+        mTaskViewModel.setSortMethod(id);
         updateTasks();
-
         return super.onOptionsItemSelected(item);
     }
 
     @Override
     public void onDeleteTask(Task task) {
-        tasks.remove(task);
-        Toast.makeText(this, " " + task.getId(), Toast.LENGTH_SHORT).show();
-        Handler mainHandler = new Handler(this.getMainLooper());
-        executor.execute(() -> {
-            int numberOfRows = taskDao.deleteTask(task.getId());
-            refetchTasks();
-            mainHandler.post(() -> {
-                updateTasks();
-                Toast.makeText(this, "Tâche supprimée" + numberOfRows, Toast.LENGTH_LONG).show();
-            });
-        });
+        mTaskViewModel.deleteTask(task);
     }
 
     /**
@@ -178,7 +141,6 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
     private void onPositiveButtonClick(DialogInterface dialogInterface) {
         // If dialog is open
         if (dialogEditText != null && dialogSpinner != null) {
-            populateDialogSpinner();
             // Get the name of the task
             String taskName = dialogEditText.getText().toString();
 
@@ -235,54 +197,23 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
      * @param task the task to be added to the list
      */
     private void addTask(@NonNull Task task) {
-        tasks.add(task);
-        Toast.makeText(this, " " + task.getId(), Toast.LENGTH_LONG).show();
-        Handler mainHandler = new Handler(this.getMainLooper());
-        executor.execute(() -> {
-            taskDao.insertTask(task);
-            refetchTasks();
-            mainHandler.post(() -> {
-                updateTasks();
-                Toast.makeText(this, "Tâche créée", Toast.LENGTH_LONG).show();
-            });
-        });
-
+        mTaskViewModel.insertTask(task);
     }
 
     /**
      * Updates the list of tasks in the UI
      */
     private void updateTasks() {
-        if (tasks.size() == 0) {
+        if (mTasks.size() == 0) {
             lblNoTasks.setVisibility(View.VISIBLE);
             listTasks.setVisibility(View.GONE);
         } else {
             lblNoTasks.setVisibility(View.GONE);
             listTasks.setVisibility(View.VISIBLE);
-            switch (sortMethod) {
-                case ALPHABETICAL:
-                    Collections.sort(tasks, new Task.TaskAZComparator());
-                    break;
-                case ALPHABETICAL_INVERTED:
-                    Collections.sort(tasks, new Task.TaskZAComparator());
-                    break;
-                case RECENT_FIRST:
-                    Collections.sort(tasks, new Task.TaskRecentComparator());
-                    break;
-                case OLD_FIRST:
-                    Collections.sort(tasks, new Task.TaskOldComparator());
-                    break;
-
-            }
-            adapter.updateTasks(tasks);
+            mTaskViewModel.updateTaskSortOrder(mTasks);
+            adapter.updateTasks(mTasks);
         }
     }
-
-    private void refetchTasks() {
-        tasks.clear();
-        tasks.addAll(taskDao.getAllTasks());
-    }
-
 
     /**
      * Returns the dialog allowing the user to create a new task.
@@ -333,8 +264,6 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
     private void populateDialogSpinner() {
         final ArrayAdapter<Project> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, allProjects);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        //Toast.makeText(this, "Spinner " + (allProjects == null) + " " + allProjects.size(), Toast.LENGTH_SHORT).show();
-        // Toast.makeText(this, projectDao.getAllProjects().size(), Toast.LENGTH_LONG).show();
         if (dialogSpinner != null) {
             dialogSpinner.setAdapter(adapter);
         }
@@ -342,44 +271,18 @@ public class MainActivity extends AppCompatActivity implements TaskAdapter.Delet
 
     @Override
     public Project getProjectById(long projectId) {
-        for (Project p : allProjects) {
-            if (p.getId() == projectId) return p;
-            Toast.makeText(this, allProjects.size(), Toast.LENGTH_SHORT).show();
-        }
-        return null;
+        return TaskViewModel.getProjectById(projectId, allProjects);
     }
 
-    /**
-     * List of all possible sort methods for task
-     */
-    private enum SortMethod {
-        /**
-         * Sort alphabetical by name
-         */
-        ALPHABETICAL,
-        /**
-         * Inverted sort alphabetical by name
-         */
-        ALPHABETICAL_INVERTED,
-        /**
-         * Lastly created first
-         */
-        RECENT_FIRST,
-        /**
-         * First created first
-         */
-        OLD_FIRST,
-        /**
-         * No sort
-         */
-        NONE
-    }
 
-    public void loadAllTasks() {
-        tasks.clear();
-        executor.execute(() -> {
-            allProjects = projectDao.getAllProjects();
-            tasks.addAll(taskDao.getAllTasks());
+    private void initViewModel() {
+        ViewModelFactory mViewModelFactory = Injection.provideViewModelFactory(this);
+        mTaskViewModel = new ViewModelProvider(this, mViewModelFactory).get(TaskViewModel.class);
+
+        mTaskViewModel.getAllProjects().observe(this, projects -> allProjects = projects);
+
+        mTaskViewModel.getAllTasks().observe(this, tasks -> {
+            mTasks = tasks;
             updateTasks();
         });
     }
