@@ -13,6 +13,7 @@ import java.util.List;
 @Dao
 public interface ProjectDao {
 
+    //SERVICE
     @Query("SELECT * FROM Project")
     LiveData<List<Project>> getAllProjects();
 
